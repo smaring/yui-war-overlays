@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>com.yahoo.yui2</groupId>
+		<artifactId>yui2-parent-pom</artifactId>
+		<version>2.8.1-SNAPSHOT</version>
+	</parent>
+	
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>yui2-datasource</artifactId>
+	<name>datasource</name>
+	<packaging>war</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-event</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-event</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>warpath</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-json</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-json</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>warpath</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-connection</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-connection</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>warpath</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-get</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.yui2</groupId>
+			<artifactId>yui2-get</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>warpath</type>
+		</dependency>
+	</dependencies>	
+
+</project>

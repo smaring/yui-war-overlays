@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>com.yahoo.yui</groupId>
+		<artifactId>yui-parent-pom</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.yahoo.yui2</groupId>
+	<artifactId>yui2-parent-pom</artifactId>
+	<name>YUI2 Parent POM</name>
+	<packaging>pom</packaging>
+	<version>2.8.1-SNAPSHOT</version>
+	
+	<properties>
+		<yui2.release.tag>yui2-2.8.1-19</yui2.release.tag>
+		<yui2.origin>http://github.com/yui/yui2.git</yui2.origin>
+	</properties>
+	
+	
+	
+	<build>
+		<plugins>
+		
+		
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.5</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties"
+										classpath="${user.home}/.m2/repository/ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar" />
+								
+								<echo>checking for a local repository in src/yui2 ...</echo>
+								<if>
+									<not>
+										<resourceexists>
+											<file file="src/yui2/.git/config"/>
+										</resourceexists>
+									</not>
+									<then>
+										<echo>no local repo found in src/yui2.  create one like this ...</echo>
+										<echo>$ mkdir src/yui2</echo>
+										<echo>$ cd src/yui2</echo>
+										<echo>$ git init</echo>
+										<fail/>
+									</then>
+								</if>
+								
+								<echo>checking if the local repository in src/yui2 has the correct remote origin ...</echo>
+								<exec	dir="src/yui2"
+										executable="git"
+										outputproperty="git-remote">
+									<arg line="remote -v"/>
+								</exec>
+								<echo>${git-remote}</echo>
+								<if>
+									<contains string="${git-remote}" substring="${yui2.origin}"/>
+									<then>
+										<echo>remote origin correct</echo>
+									</then>
+									<else>
+										<echo>you need to set your remote origin for yui2 like this ...</echo>
+										<echo>$ cd src/yui2</echo>
+										<echo>$ git remote add origin ${yui2.origin}</echo>
+										<fail/>
+									</else>
+								</if>								
+								
+								
+								<echo>checking if you have the tag we need for the release ...</echo>
+								<exec	dir="src/yui2"
+										executable="git"
+										outputproperty="git-tag-list">
+									<arg line="tag"/>
+								</exec>
+								<if>
+									<contains string="${git-tag-list}" substring="${yui2.release.tag}"/>
+									<then>
+										<echo>${yui2.release.tag} tag found locally</echo>
+									</then>								
+									<else>
+										<echo>you need to fetch the ${yui2.release.tag} tag from the remote origin like this ...</echo>
+										<echo>$ cd src/yui2</echo>
+										<echo>$ git fetch origin tag ${yui2.release.tag}</echo>
+										<fail/>
+									</else>
+
+								</if>
+								
+								<echo>checking out tag ${yui2.release.tag} ...</echo>
+								<exec	dir="src/yui2"
+										executable="git"
+										outputproperty="git-checkout"
+										errorproperty="git-checkout-error">
+									<arg line="checkout ${yui2.release.tag}"/>
+								</exec>
+								<echo>${git-checkout}</echo>
+								<echo>${git-checkout-error}</echo>
+
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.maring.maven.plugins</groupId>
+				<artifactId>javascript-combo-service-maven-plugin</artifactId>
+				<version>1.0.0-SNAPSHOT</version>	
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>replaceRefs</goal>
+						</goals>
+						<configuration>
+							<outputDir>yui2-${project.name}/target/replaceRefs</outputDir>
+							<fileSet>
+								<directory>src/yui2/build/${project.name}</directory>
+								<includes>
+									<include>**/*.css</include>
+								</includes>
+							</fileSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<resource>
+							<targetPath>lib/js/yui2/${project.name}</targetPath>
+							<directory>target/replaceRefs</directory>
+						</resource>
+						<resource>
+							<targetPath>lib/js/yui2/${project.name}</targetPath>
+							<directory>../src/yui2/build/${project.name}</directory>
+						</resource>
+					</webResources>
+					<dependentWarExcludes>**</dependentWarExcludes>
+				</configuration>
+			</plugin>
+
+			
+			<plugin>
+				<groupId>org.appfuse.plugins</groupId>
+				<artifactId>maven-warpath-plugin</artifactId>
+				<version>2.1.0-M1</version>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<goals>
+							<goal>add-classes</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+		</plugins>
+	</build>
+
+	
+
+	<modules>
+		<module>yui2-utilities</module>
+		<module>yui2-yahoo-dom-event</module>
+		<module>yui2-yuiloader-dom-event</module>
+		<module>yui2-yuiloader</module>
+		<module>yui2-yahoo</module>
+		<module>yui2-dom</module>
+		<module>yui2-event</module>
+		<module>yui2-animation</module>
+		<module>yui2-assets</module>
+		<module>yui2-base</module>
+		<module>yui2-connection</module>
+		<module>yui2-cookie</module>
+		<module>yui2-datasource</module>
+		<module>yui2-autocomplete</module>
+		<module>yui2-datemath</module>
+		<module>yui2-calendar</module>
+		<module>yui2-dragdrop</module>
+		<module>yui2-container</module>
+		<module>yui2-event-mouseenter</module>
+		<module>yui2-event-simulate</module>
+		<module>yui2-fonts</module>
+		<module>yui2-get</module>
+		<module>yui2-history</module>
+		<module>yui2-imageloader</module>
+		<module>yui2-json</module>
+		<module>yui2-logger</module>
+		<module>yui2-profiler</module>
+		<module>yui2-reset</module>
+		<module>yui2-grids</module>
+		<module>yui2-reset-fonts</module>
+		<module>yui2-reset-fonts-grids</module>
+		<module>yui2-resize</module>
+		<module>yui2-selector</module>
+		<module>yui2-event-delegate</module>
+		<module>yui2-element</module>
+		<module>yui2-element-delegate</module>
+		<module>yui2-menu</module>
+		<module>yui2-button</module>
+		<module>yui2-paginator</module>
+		<module>yui2-datatable</module>
+		<module>yui2-progressbar</module>
+		<module>yui2-imagecropper</module>
+		<module>yui2-carousel</module>
+		<module>yui2-editor</module>
+		<module>yui2-layout</module>
+		<module>yui2-slider</module>
+		<module>yui2-colorpicker</module>
+		<module>yui2-stylesheet</module>
+		<module>yui2-swfdetect</module>
+		<module>yui2-swf</module>
+		<module>yui2-charts</module>
+		<module>yui2-swfstore</module>
+		<module>yui2-storage</module>
+		<module>yui2-tabview</module>
+		<module>yui2-treeview</module>
+		<module>yui2-uploader</module>
+		<module>yui2-profilerviewer</module>
+		<module>yui2-yuitest</module>
+	</modules>
+	
+	
+	<dependencies>
+		<dependency>
+			<groupId>ant-contrib</groupId>
+			<artifactId>ant-contrib</artifactId>
+			<version>1.0b3</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ant</groupId>
+					<artifactId>ant</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant-nodeps</artifactId>
+			<version>1.8.0</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	
+</project>
