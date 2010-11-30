@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>com.yahoo.yui</groupId>
+		<artifactId>yui-parent-pom</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.yahoo.yui3</groupId>
+	<artifactId>yui3-parent-pom</artifactId>
+	<name>YUI3 Parent POM</name>
+	<packaging>pom</packaging>
+	<version>3.1.1-SNAPSHOT</version>
+	
+	<properties>
+		<yui3.release.tag>yui3-3.1.1-47</yui3.release.tag>
+		<yui3.origin>http://github.com/yui/yui3.git</yui3.origin>
+	</properties>
+	
+
+    <licenses>
+        <license>
+            <name>Software License Agreement (BSD License)</name>
+            <comments>
+				Copyright (c) 2011, Yahoo! Inc.
+				All rights reserved.
+
+				Redistribution and use of this software in source and binary forms,
+				with or without modification, are permitted provided that the
+				following conditions are met:
+
+    				* Redistributions of source code must retain the above copyright
+    				  notice, this list of conditions and the following disclaimer.
+    				* Redistributions in binary form must reproduce the above
+    				  copyright notice, this list of conditions and the following
+    				  disclaimer in the documentation and/or other materials provided
+    				  with the distribution.
+    				* Neither the name of Yahoo! Inc. nor the names of its contributors
+    				  may be used to endorse or promote products derived from this
+    				  software without specific prior written permission of Yahoo! Inc.
+
+				THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+				"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+				LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+				A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+				OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+				SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+				LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+				DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+				THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+				(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+				OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+            </comments>
+        </license>
+    </licenses>
+	
+	
+	<build>
+		<plugins>
+		
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.5</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties"
+										classpath="${user.home}/.m2/repository/ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar" />
+								
+								<echo>checking for a local repository in src/yui3 ...</echo>
+								<if>
+									<not>
+										<resourceexists>
+											<file file="src/yui3/.git/config"/>
+										</resourceexists>
+									</not>
+									<then>
+										<echo>no local repo found in src/yui3.  create one like this ...</echo>
+										<echo>$ mkdir -p src/yui3</echo>
+										<echo>$ cd src/yui3</echo>
+										<echo>$ git init</echo>
+										<fail/>
+									</then>
+								</if>
+								
+								<echo>checking if the local repository in src/yui3 has the correct remote origin ...</echo>
+								<exec	dir="src/yui3"
+										executable="git"
+										outputproperty="git-remote">
+									<arg line="remote -v"/>
+								</exec>
+								<echo>${git-remote}</echo>
+								<if>
+									<contains string="${git-remote}" substring="${yui3.origin}"/>
+									<then>
+										<echo>remote origin correct</echo>
+									</then>
+									<else>
+										<echo>you need to set your remote origin for yui3 like this ...</echo>
+										<echo>$ cd src/yui3</echo>
+										<echo>$ git remote add origin ${yui3.origin}</echo>
+										<fail/>
+									</else>
+								</if>								
+								
+								
+								<echo>checking if you have the tag we need for the release ...</echo>
+								<exec	dir="src/yui3"
+										executable="git"
+										outputproperty="git-tag-list">
+									<arg line="tag"/>
+								</exec>
+								<if>
+									<contains string="${git-tag-list}" substring="${yui3.release.tag}"/>
+									<then>
+										<echo>${yui3.release.tag} tag found locally</echo>
+									</then>								
+									<else>
+										<echo>you need to fetch the ${yui3.release.tag} tag from the remote origin like this ...</echo>
+										<echo>$ cd src/yui3</echo>
+										<echo>$ git fetch origin tag ${yui3.release.tag}</echo>
+										<fail/>
+									</else>
+
+								</if>
+								
+								<echo>checking out tag ${yui3.release.tag} ...</echo>
+								<exec	dir="src/yui3"
+										executable="git"
+										outputproperty="git-checkout"
+										errorproperty="git-checkout-error">
+									<arg line="checkout ${yui3.release.tag}"/>
+								</exec>
+								<echo>${git-checkout}</echo>
+								<echo>${git-checkout-error}</echo>
+
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.maring.maven.plugins</groupId>
+				<artifactId>javascript-combo-service-maven-plugin</artifactId>
+				<version>1.0.0-SNAPSHOT</version>	
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>replaceRefs</goal>
+						</goals>
+						<configuration>
+							<newRelativePath>lib/js/yui3</newRelativePath>
+							<outputDir>yui3-${project.name}/target/replaceRefs</outputDir>
+							<fileSet>
+								<directory>src/yui3/build/${project.name}</directory>
+								<includes>
+									<include>**/*.css</include>
+								</includes>
+							</fileSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<resource>
+							<targetPath>lib/js/yui3/${project.name}</targetPath>
+							<directory>target/replaceRefs</directory>
+						</resource>
+						<resource>
+							<targetPath>lib/js/yui3/${project.name}</targetPath>
+							<directory>../src/yui3/build/${project.name}</directory>
+						</resource>
+					</webResources>
+					<dependentWarExcludes>**</dependentWarExcludes>
+				</configuration>
+			</plugin>
+
+			
+			<plugin>
+				<groupId>org.appfuse.plugins</groupId>
+				<artifactId>maven-warpath-plugin</artifactId>
+				<version>2.1.0-M1</version>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<goals>
+							<goal>add-classes</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+		</plugins>
+	</build>
+
+	
+
+	<modules>
+		<module>yui3-yui</module>
+		<module>yui3-oop</module>
+		<module>yui3-event-custom</module>
+		<module>yui3-dom</module>
+		<module>yui3-attribute</module>
+		<module>yui3-pluginhost</module>
+		<module>yui3-base</module>
+		<module>yui3-event</module>
+		<module>yui3-node</module>
+		<module>yui3-anim</module>
+		<module>yui3-assets</module>
+		<module>yui3-async-queue</module>
+		<module>yui3-json</module>
+		<module>yui3-cache</module>
+		<module>yui3-classnamemanager</module>
+		<module>yui3-collection</module>
+		<module>yui3-compat</module>
+		<module>yui3-dump</module>
+		<module>yui3-substitute</module>
+		<module>yui3-widget</module>
+		<module>yui3-intl</module>
+		<module>yui3-console</module>
+		<module>yui3-cookie</module>
+		<module>yui3-cssbase</module>
+		<module>yui3-cssfonts</module>
+		<module>yui3-cssreset</module>
+		<module>yui3-cssgrids</module>
+		<module>yui3-dataschema</module>
+		<module>yui3-datatype</module>
+		<module>yui3-queue-promote</module>
+		<module>yui3-querystring</module>
+		<module>yui3-io</module>
+		<module>yui3-plugin</module>
+		<module>yui3-datasource</module>
+		<module>yui3-dd</module>
+		<module>yui3-event-simulate</module>
+		<module>yui3-history</module>
+		<module>yui3-imageloader</module>
+		<module>yui3-loader</module>
+		<module>yui3-node-focusmanager</module>
+		<module>yui3-node-menunav</module>
+		<module>yui3-overlay</module>
+		<module>yui3-profiler</module>
+		<module>yui3-slider</module>
+		<module>yui3-sortable</module>
+		<module>yui3-stylesheet</module>
+		<module>yui3-swfdetect</module>
+		<module>yui3-swf</module>
+		<module>yui3-tabview</module>
+		<module>yui3-test</module>
+		<module>yui3-value-change</module>
+		<module>yui3-widget-anim</module>
+	</modules>
+	
+	
+	<dependencies>
+		<dependency>
+			<groupId>ant-contrib</groupId>
+			<artifactId>ant-contrib</artifactId>
+			<version>1.0b3</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ant</groupId>
+					<artifactId>ant</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant-nodeps</artifactId>
+			<version>1.8.0</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	
+</project>
